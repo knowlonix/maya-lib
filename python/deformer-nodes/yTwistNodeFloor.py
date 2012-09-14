@@ -60,33 +60,21 @@ class yTwistNodeFloor(OpenMayaMPx.MPxDeformerNode):
 		OpenMayaMPx.MPxDeformerNode.__init__(self)
 	# deform
 	def deform(self,dataBlock,geomIter,matrix,multiIndex):
-		#
-		# get the angle from the datablock
-		angleHandle = dataBlock.inputValue( self.angle )
-		angleValue = angleHandle.asDouble()
-		#
 		# get the envelope
 		envelope = OpenMayaMPx.cvar.MPxDeformerNode_envelope
 		envelopeHandle = dataBlock.inputValue( envelope )
 		envelopeValue = envelopeHandle.asFloat()
 		#
 		# iterate over the object and change the angle
-		while geomIter.isDone() == False:
+		while not geomIter.isDone():
 			point = geomIter.position()
 			worldPos = point * matrix
-			ff = angleValue * point.y * envelopeValue
-			if ff != 0.0:
-				cct= math.cos(ff)
-				cst= math.sin(ff)
-				tt= point.x*cct-point.z*cst
-				point.z= point.x*cst + point.z*cct
-				point.x=tt
+
+
 
 			if worldPos.y < 0.0:
-				worldPos.y = -(OpenMaya.MPoint(0.0, 0.0, 0.0) * matrix).y
-				worldPos.x = point.x
-				worldPos.z = point.z
-				geomIter.setPosition( worldPos )
+				worldPos.y = 0.0
+				geomIter.setPosition( worldPos * matrix.inverse() )
 			else:
 				geomIter.setPosition( point )
 			geomIter.next()
@@ -125,5 +113,4 @@ def uninitializePlugin(mobject):
 		mplugin.deregisterNode( yTwistNodeFloorId )
 	except:
 		sys.stderr.write( "Failed to unregister node: %s\n" % kPluginNodeTypeName )
-
-	
+		
